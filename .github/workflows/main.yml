@@ -124,25 +124,27 @@ jobs:
           push: true
           tags: qprym/kittygram_gateway:latest
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: 
-      - build_backend_and_push_to_docker_hub
-      - build_frontend_and_push_to_docker_hub
-      - build_gateway_and_push_to_docker_hub
-    steps:
+deploy:
+  runs-on: ubuntu-latest
+  needs: 
+    - build_backend_and_push_to_docker_hub
+    - build_frontend_and_push_to_docker_hub
+    - build_gateway_and_push_to_docker_hub
+  steps:
     - name: Checkout repo
       uses: actions/checkout@v3
-    - name: Copy docker-compose.yml via ssh
+    
+    - name: Copy required files
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         key: ${{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        source: "docker-compose.yml"
+        source: "docker-compose.yml,.env" 
         target: "kittygram"
-    - name: Executing remote ssh commands to deploy
+    
+    - name: Deploy application
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -151,12 +153,14 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         script: |
           cd kittygram
-          sudo docker compose -f docker-compose.yml pull
-          sudo docker compose -f docker-compose.yml down
-          sudo docker compose -f docker-compose.yml up -d
-          sudo docker compose -f docker-compose.yml exec backend python manage.py migrate --no-input
-          sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic --no-input
-          sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /backend_static/static/
+          sudo mkdir -p backend_static/static
+          sudo docker compose pull
+          sudo docker compose down
+          sudo docker compose up -d
+          sudo docker compose exec backend python manage.py migrate --no-input
+          sudo docker compose exec backend python manage.py collectstatic --no-input
+          sudo docker compose exec backend sh -c "[ -d /app/collected_static ] && cp -r /app/collected_static/. /backend_static/static/ || echo 'Static files not found'"
+
 
   send_message:
     runs-on: ubuntu-latest
