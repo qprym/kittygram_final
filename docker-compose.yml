@@ -9,21 +9,29 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     env_file: .env
+
   backend:
     image: qprym/kittygram_backend
     env_file: .env
     volumes:
       - media:/app/media/
+      - static:/backend_static/static
+    depends_on:
+      db:
+        condition: service_healthy
+
   frontend:
-    env_file: .env
     image: qprym/kittygram_frontend
-    command: cp -r /app/build/. /static/
+    env_file: .env
     volumes:
       - static:/static
+
   gateway:
     image: qprym/kittygram_gateway
-    env_file: .env
     ports:
       - 9000:80
     volumes:
       - static:/static
+    depends_on:
+      - backend
+      - frontend
