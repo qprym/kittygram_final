@@ -1,3 +1,4 @@
+version: '3'
 volumes:
   pg_data:
   static:
@@ -15,30 +16,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
   backend:
     image: qprym/kittygram_backend
     env_file: .env
     volumes:
-      - media:/app/media/
-      - static:/backend_static/static
-    depends_on:
-      db:
-        condition: service_healthy
-
+      - static:/backend_static
+      - media:/app/media
   frontend:
-    image: qprym/kittygram_frontend
     env_file: .env
+    image: qprym/kittygram_frontend
+    command: cp -r /app/build/. /static/
     volumes:
       - static:/static
-
   gateway:
     image: qprym/kittygram_gateway
+    env_file: .env
     ports:
       - 9000:80
     volumes:
       - static:/static
-    depends_on:
-      - backend
-      - frontend
       - media:/media
