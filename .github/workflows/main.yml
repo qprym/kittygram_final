@@ -156,8 +156,13 @@ jobs:
             sudo mkdir -p backend_static/static
             sudo docker compose pull
             sudo docker compose down
+            sudo docker compose up -d db backend
+            sleep 10
+            while ! sudo docker compose exec backend curl -f http://localhost:9000/api/; do
+              echo "Waiting for backend to become healthy..."
+              sleep 5
+            done
             sudo docker compose up -d
-          
             sleep 15
             
             sudo docker compose exec backend python manage.py migrate --no-input
