@@ -147,20 +147,19 @@ jobs:
       - name: Deploy application
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd kittygram
             sudo mkdir -p backend_static/static
             sudo docker compose pull
             sudo docker compose down
             sudo docker compose up -d
+            
+            # Ждем готовности БД
+            sleep 15
+            
             sudo docker compose exec backend python manage.py migrate --no-input
             sudo docker compose exec backend python manage.py collectstatic --no-input
             sudo docker compose exec backend sh -c "[ -d /app/collected_static ] && cp -r /app/collected_static/. /backend_static/static/ || echo 'Static files not found'"
-
 
   send_message:
     runs-on: ubuntu-latest
