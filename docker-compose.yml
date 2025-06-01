@@ -15,37 +15,23 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
   backend:
-    image: qprym/kittygram_backend
+    build: ./backend/
     env_file: .env
     volumes:
-      - media:/app/media/
-      - static:/backend_static/static
-    depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/api/"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
+      - static:/backend_static
+      - media:/app/media
   frontend:
-    image: qprym/kittygram_frontend
     env_file: .env
+    build: ./frontend/
+    command: cp -r /app/build/. /static/
     volumes:
       - static:/static
-
   gateway:
-    image: qprym/kittygram_gateway
+    build: ./nginx/
+    env_file: .env
     ports:
-      - 9000:80
+      - 8000:80
     volumes:
       - static:/static
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_started
+      - media:/media
