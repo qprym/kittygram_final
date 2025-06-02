@@ -131,38 +131,33 @@ jobs:
       - build_frontend_and_push_to_docker_hub
       - build_gateway_and_push_to_docker_hub
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      
-      - name: Copy required files
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          source: "docker-compose.yml,.env" 
-          target: "kittygram"
-      
-      - name: Deploy application
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}    
-          username: ${{ secrets.USER }} 
-          key: ${{ secrets.SSH_KEY }}    
-          passphrase: ${{ secrets.SSH_PASSPHRASE }}
-          script: |
-            cd kittygram
-            sudo mkdir -p backend_static/static
-            sudo docker compose pull
-            sudo docker compose down
-            sudo docker compose up -d
-          
-            sleep 15
-            
-            sudo docker compose exec backend python manage.py migrate --no-input
-            sudo docker compose exec backend python manage.py collectstatic --no-input
-            sudo docker compose exec backend sh -c "[ -d /app/collected_static ] && cp -r /app/collected_static/. /backend_static/static/ || echo 'Static files not found'"
+    - name: Checkout repo
+      uses: actions/checkout@v3
+    - name: Copy files via ssh
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        source: "docker-compose.yml"
+        target: "kittygram"
+    - name: Executing remote ssh commands to deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.SSH_KEY }}
+        passphrase: ${{ secrets.SSH_PASSPHRASE }}
+        script: |
+          cd kittygram
+          sudo docker compose -f docker-compose.production.yml pull
+          sudo docker compose -f docker-compose.production.yml down
+          sudo docker compose -f docker-compose.production.yml up -d
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --no-input
+          sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/collected_static/. /static/static/
+          sudo docker system prune -af
 
   send_message:
     runs-on: ubuntu-latest
@@ -173,4 +168,4 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_TO }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Kittygram успешно обновлен на сервере!
+        message: "Kittygram успешно обновлен на сервере!"

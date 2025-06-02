@@ -1,3 +1,5 @@
+version: '3'
+
 volumes:
   pg_data:
   static:
@@ -9,6 +11,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     env_file: .env
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U django_user"]
       interval: 5s
@@ -17,7 +20,7 @@ services:
       start_period: 10s
 
   backend:
-    image: qprym/kittygram_backend
+    image: qprym/kittygram_backend:latest
     env_file: .env
     volumes:
       - media:/app/media/
@@ -27,17 +30,19 @@ services:
         condition: service_healthy
 
   frontend:
-    image: qprym/kittygram_frontend
+    image: qprym/kittygram_frontend:latest
     env_file: .env
+    command: cp -r /app/build/. /static/
     volumes:
       - static:/static
 
   gateway:
-    image: qprym/kittygram_gateway
+    image: qprym/kittygram_gateway:latest
     ports:
       - 9000:80
     volumes:
       - static:/static
+      - media:/app/media/
     depends_on:
       - backend
       - frontend
