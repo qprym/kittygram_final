@@ -8,7 +8,12 @@ SECRET_KEY = 'django-insecure-cg6*%6d51ef8f#4!r3*$vmxm4)abgjw8mo!4y-q*uq1!4$-89$
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', 'qprym-kittygram.sytes.net', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'qprym-kittygram.sytes.net',
+    'localhost',
+    '127.0.0.1',
+    'backend',
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -115,3 +120,18 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "https://qprym-kittygram.sytes.net",
+    'http://localhost:3000'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://qprym-kittygram.sytes.net',
+    'https://qprym-kittygram.sytes.net',
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://backend', 
+]
