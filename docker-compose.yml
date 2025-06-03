@@ -27,8 +27,9 @@ services:
         condition: service_healthy
 
   frontend:
-    image: qprym/kittygram_frontend
+    image: qprym/kittygram_frontend:latest
     env_file: .env
+    command: cp -r /app/build/. /static/
     volumes:
       - static:/static
 
