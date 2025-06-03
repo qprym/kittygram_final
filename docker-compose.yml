@@ -1,3 +1,5 @@
+version: '3'
+
 volumes:
   pg_data:
   static:
@@ -6,39 +8,42 @@ volumes:
 services:
   db:
     image: postgres:13
-    volumes:
-      - pg_data:/var/lib/postgresql/data
     env_file: .env
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U django_user -d django_db"]
+      test: ["CMD-SHELL", "pg_isready -U kittygram_user -d kittygram"]
       interval: 5s
       timeout: 5s
       retries: 5
-      start_period: 10s
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
   backend:
-    image: qprym/kittygram_backend
+    build: ./backend/
     env_file: .env
+    command: >
+      sh -c "python manage.py collectstatic --no-input &&
+             python manage.py migrate &&
+             gunicorn --bind 0.0.0.0:8000 kittygram_backend.wsgi"
     volumes:
-      - media:/app/media/
-      - static:/backend_static/static
+      - static:/app/collected_static
+      - media:/app/media
     depends_on:
       db:
         condition: service_healthy
 
   frontend:
-    image: qprym/kittygram_frontend:latest
-    env_file: .env
-    command: cp -r /app/build/. /static/
+    build: ./frontend/
+    command: cp -r /app/build/. /frontend_static/
     volumes:
-      - static:/static
+      - static:/frontend_static/
 
   gateway:
-    image: qprym/kittygram_gateway
+    build: ./nginx/
     ports:
-      - 9000:80
+      - "9000:80"
     volumes:
-      - static:/static
+      - static:/staticfiles
+      - media:/app/media
     depends_on:
       - backend
       - frontend

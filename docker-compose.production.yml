@@ -1,0 +1,45 @@
+version: '3'
+
+volumes:
+  pg_data:
+  static:
+  media:
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kittygram_user -d kittygram"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    image: ./backend/
+    env_file: .env
+    volumes:
+      - static:/app/collected_static
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: ./frontend/
+    command: cp -r /app/build/. /frontend_static/
+    volumes:
+      - static:/frontend_static/
+
+  gateway:
+    image: ./nginx/
+    ports:
+      - "9000:80"
+    volumes:
+      - static:/staticfiles
+      - media:/app/media
+    depends_on:
+      - backend
+      - frontend
