@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework.authtoken',
     'rest_framework',
     'djoser',
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -122,16 +124,10 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost",
-    "http://127.0.0.1",
     "https://qprym-kittygram.sytes.net",
-    'http://localhost:3000'
+    "http://localhost:3000",  
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://qprym-kittygram.sytes.net',
-    'https://qprym-kittygram.sytes.net',
-    'http://localhost',
-    'http://127.0.0.1',
-    'http://backend', 
-]
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = ['https://qprym-kittygram.sytes.net']
