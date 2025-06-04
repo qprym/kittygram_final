@@ -2,14 +2,13 @@ version: '3'
 
 volumes:
   pg_data:
-  static:
+  static_volume:
   media:
 
 services:
   db:
-    image: postgres:13.10
+    image: postgres:13
     env_file: .env
-    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kittygram_user -d kittygram"]
       interval: 5s
@@ -22,7 +21,7 @@ services:
     image: qprym/kittygram_backend:latest
     env_file: .env
     volumes:
-      - static:/app/collected_static
+      - static_volume:/app/collected_static/
       - media:/app/media
     depends_on:
       db:
@@ -32,14 +31,14 @@ services:
     image: qprym/kittygram_frontend:latest
     command: cp -r /app/build/. /frontend_static/
     volumes:
-      - static:/frontend_static/
+      - static_volume:/frontend_static/
 
   gateway:
     image: qprym/kittygram_gateway:latest
     ports:
       - "9000:80"
     volumes:
-      - static:/staticfiles
+      - static_volume:/staticfiles/
       - media:/app/media
     depends_on:
       - backend
