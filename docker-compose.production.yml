@@ -35,7 +35,7 @@ services:
       - static:/frontend_static/
 
   gateway:
-    image: dirsyt/kittygram_gateway:latest
+    image: qprym/kittygram_gateway:latest
     ports:
       - "9000:80"
     volumes:
