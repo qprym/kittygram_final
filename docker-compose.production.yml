@@ -7,11 +7,9 @@ volumes:
 
 services:
   db:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: kittygram_user
-      POSTGRES_PASSWORD: kittygram_password
-      POSTGRES_DB: kittygram
+    image: postgres:13.10
+    env_file: .env
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U kittygram_user -d kittygram"]
       interval: 5s
