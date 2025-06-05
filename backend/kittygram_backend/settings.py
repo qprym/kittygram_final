@@ -6,9 +6,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='token')
 
-DEBUG = False
+DEBUG = os.getenv('DEBUG', '').lower() != 'false'
 
-ALLOWED_HOSTS = ['qprym-kittygram.sytes.net','127.0.0.1','localhost','backend','84.201.140.27']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='127.0.0.1, localhost').split(', ')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
